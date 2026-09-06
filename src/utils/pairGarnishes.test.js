@@ -51,6 +51,24 @@ describe("pairGarnishes", () => {
     expect(result[0].garnishId).toBeUndefined();
   });
 
+  it("nunca pone guarnición automática a una receta que ya lleva salsa propia (llevaSalsa)", () => {
+    // "Merluza en salsa verde" o "Pollo al ajillo" ya traen su salsa escrita
+    // dentro sin ser Recetario Estrella. Pegarles TAMBIÉN una guarnición
+    // automática (patatas panaderas, ensalada...) deja el plato recargado:
+    // salsa propia + guarnición ajena compitiendo en el mismo plato.
+    const pool = { p1: principal({ llevaSalsa: true, name: "Merluza en salsa verde" }) };
+    const slots = [{ slotId: "lun_cena", recipeId: "p1" }];
+    const result = pairGarnishes(slots, pool, {}, [garnish()]);
+    expect(result[0].garnishId).toBeUndefined();
+  });
+
+  it("pero sí respeta la guarnición que ha fijado el usuario en una receta con llevaSalsa", () => {
+    const pool = { p1: principal({ llevaSalsa: true, name: "Merluza en salsa verde" }) };
+    const slots = [{ slotId: "lun_cena", recipeId: "p1" }];
+    const result = pairGarnishes(slots, pool, { p1: "guarniciones_037" }, []);
+    expect(result[0].garnishId).toBe("guarniciones_037");
+  });
+
   it("pero sí respeta la guarnición que ha fijado el usuario, aunque sea estrella", () => {
     // Elegirla es una decisión de quien cocina; lo que sobra es que la app se
     // la invente.

@@ -372,28 +372,29 @@ export function CatalogBrowserSheet({
 
   const fullCatalog = useMemo(
     () => {
+      // El Recetario Estrella es el único catálogo elegible para un hueco del
+      // menú (ver filterRecipes.isPrimaryCatalog): un plato del "fondo de
+      // armario" antiguo no trae guarnición ni salsa propia, y dejarlo elegir
+      // aquí es lo que colaba un plato así en el menú para que pairGarnishes
+      // le pegara encima una guarnición automática — el plato "recargado"
+      // reportado. Las recetas propias del usuario siempre valen, sean o no
+      // Recetario Estrella.
+      const onlyPrimaryCatalog = (list) => list.filter((r) => r.source === "user" || Boolean(r.estrella));
+
       if (gatePickSourceTabs && gatePick) {
         if (sourceTab === "mine") return mineRecipes;
-        return extraRecipes.length > 0 ? [...recipeCatalog, ...extraRecipes] : recipeCatalog;
+        return onlyPrimaryCatalog(
+          extraRecipes.length > 0 ? [...recipeCatalog, ...extraRecipes] : recipeCatalog,
+        );
       }
       const base = sourceRecipes
         ? sourceRecipes
         : extraRecipes.length > 0
           ? [...recipeCatalog, ...extraRecipes]
           : recipeCatalog;
-      // Catálogo (Recetas): el Recetario Estrella es ahora el catálogo
-      // principal — los platos "antiguos" (fondo de armario, ver flag
-      // `estrella` en recipeSchema.js) se quedan como fallback para el
-      // generador de menús, pero ya no se navegan aquí. Las recetas propias
-      // del usuario siempre se ven, sean o no Recetario Estrella. (Antes se
-      // usaba "¿tiene foto?" como señal — ver filterRecipes.isPrimaryCatalog
-      // para por qué eso acoplaba el catálogo a un detalle visual.)
-      if (reference && browseCategories) {
-        return base.filter((r) => r.source === "user" || Boolean(r.estrella));
-      }
-      return base;
+      return onlyPrimaryCatalog(base);
     },
-    [gatePickSourceTabs, gatePick, sourceTab, sourceRecipes, extraRecipes, mineRecipes, reference, browseCategories],
+    [gatePickSourceTabs, gatePick, sourceTab, sourceRecipes, extraRecipes, mineRecipes],
   );
   const platoCatalog = useMemo(
     () => fullCatalog.filter((r) => (gatePick ? isGatePickPlato(r) : !isGuarnicionRecipe(r))),

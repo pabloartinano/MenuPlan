@@ -1128,11 +1128,13 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     data.garnishRepeat ?? "off",
   );
 
-  // 5b. Pair a subset of "canReceiveSauce" dishes with a compatible sauce —
-  //     independiente de la guarnición, un plato puede llevar las dos.
-  //     Deliberadamente NO se aplica a todo lo elegible: tope de unas pocas
-  //     por semana + solo salsas rápidas entre semana (ver pairSauces.js),
-  //     para que sea un toque ocasional y no un plato de más cada noche.
+  // 5b. Aplica SOLO la salsa que la propia receta declara suya (sauceId) o la
+  //     que el usuario fijó a mano (fixedDishes.sauceId) — pairSauces.js ya no
+  //     elige ninguna por su cuenta (ver su cabecera). Ninguno de los dos casos
+  //     "combina" el plato con algo ajeno: sauceId nombra la salsa que el
+  //     plato ya lleva escrita dentro (para que DishDetail pueda mostrarla
+  //     como su propio paso), y lo fijado a mano es una decisión explícita de
+  //     quien cocina, igual que un garnishId fijado a mano en el paso 5.
   slotAssignments = pairSauces(
     slotAssignments,
     poolById,

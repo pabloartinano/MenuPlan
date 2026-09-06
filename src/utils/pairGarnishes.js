@@ -211,9 +211,18 @@ export function pairGarnishes(slotAssignments, poolById, pinnedByRecipeId = {}, 
     // para el fondo de armario, donde los platos SI son piezas sueltas; el
     // recetario estrella no es eso y no hay que "completarlo".
     //
+    // Lo mismo aplica a cualquier receta con llevaSalsa: true, sea o no
+    // Recetario Estrella — "Merluza en salsa verde" o "Pollo al ajillo" ya
+    // traen su salsa escrita dentro, así que pegarles TAMBIÉN una guarnición
+    // automática (patatas panaderas, ensalada...) deja el plato recargado:
+    // salsa propia + guarnición ajena compitiendo en el mismo plato. Es
+    // literalmente el principio que ya declara recipeSchema.js sobre este
+    // campo — "aquí no se combinan platos con salsas: cada receta es la que
+    // es" — que hasta ahora esta función no respetaba para la guarnición.
+    //
     // Lo elegido a mano se respeta igual: fijar una guarnicion es una decision
     // de quien cocina, no algo que la app se invente.
-    if (!garnish && recipe.estrella) return slot;
+    if (!garnish && (recipe.estrella || recipe.llevaSalsa)) return slot;
 
     if (!garnish) {
       // A fried side (patatas fritas) only pairs with meat/fish — never a
