@@ -15,6 +15,7 @@ import {
 import { getCarbType, validateMenu, splitAchievableFreqs, FREQ_KEY_MATCHERS } from "../utils/validateMenu.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { filterRecipes } from "../utils/filterRecipes.js";
+import { legumeSubtypeOf, mariscoSubtypeOf } from "./dishSubtype.js";
 
 const SLOTS = [{ slotId: "lun_cena", mealType: "cena", mode: "casa", maxTime: 30 }];
 const CONFIG = { targetKcal: 2000, freqs: {}, cookLevel: "normal", cookTime: {} };
@@ -253,6 +254,82 @@ describe("pickCatalogReplacement derives the target role from slot shape, not fr
       const catalogRecipe =
         recipeCatalogById[result.recipeId] ?? recipeCatalogById[result.frontendRecipe.baseRecipeId];
       expect(catalogRecipe.mealRole).toEqual(expect.arrayContaining(["segundo"]));
+    }
+  });
+});
+
+describe("pickCatalogReplacement varies legume/marisco subtype across the whole week", () => {
+  // Reported: a Thursday comida was regenerated to garbanzos without noticing
+  // Sunday's comida already had garbanzos — Thursday and Sunday aren't
+  // chronologically adjacent, so rule 3c's neighbour-day check never saw it
+  // (both are just "legumbres", the same coarse group, on non-neighbouring
+  // days). This is a whole-week PREFERENCE (see aiPlanner.js), not a hard
+  // block, so it should steer away from garbanzos while other legume
+  // subtypes are available in the pool.
+  const group = { id: "g1", label: "Familia", memberIds: ["m1"] };
+
+  it("does not repeat the garbanzo subtype on a non-adjacent day when lentejas/alubias are available", () => {
+    const data = { members: [{ id: "m1", age: 35 }], groups: [group], schedule: {}, timeWeekday: 90, timeWeekend: 90 };
+    const all = Object.values(recipeCatalogById);
+    const garbanzoDishes = all.filter(
+      (r) => legumeSubtypeOf(r) === "garbanzo" && r.mealRole?.includes("plato_unico") && r.time <= 90,
+    );
+    const otherLegumeExists = all.some(
+      (r) =>
+        ["lenteja", "alubia"].includes(legumeSubtypeOf(r)) &&
+        r.mealRole?.includes("plato_unico") &&
+        r.time <= 90,
+    );
+    // Sanity: the fixture this regression needs (two distinct garbanzo
+    // dishes, plus a non-garbanzo legume alternative) exists in the catalog.
+    expect(garbanzoDishes.length).toBeGreaterThanOrEqual(2);
+    expect(otherLegumeExists).toBe(true);
+
+    const menuPlan = {
+      [group.id]: {
+        "Jue-Comida": { recipeId: garbanzoDishes[0].id, eaters: 2 },
+        "Dom-Comida": { recipeId: garbanzoDishes[1].id, eaters: 2 },
+      },
+    };
+
+    for (let i = 0; i < 40; i++) {
+      const result = pickCatalogReplacement(data, menuPlan, {
+        groupId: group.id,
+        day: "Jue",
+        meal: "Comida",
+        course: "main",
+      });
+      expect(result).toBeTruthy();
+      const picked = recipeCatalogById[result.recipeId] ?? recipeCatalogById[result.frontendRecipe.baseRecipeId];
+      expect(legumeSubtypeOf(picked)).not.toBe("garbanzo");
+    }
+  });
+
+  it("does not repeat the molusco subtype (mejillones/navajas/almejas) on a non-adjacent day when other cena options exist", () => {
+    const data = { members: [{ id: "m1", age: 35 }], groups: [group], schedule: {}, timeWeekday: 90, timeWeekend: 90 };
+    const all = Object.values(recipeCatalogById);
+    const moluscoCenas = all.filter(
+      (r) => mariscoSubtypeOf(r) === "molusco" && r.mealRole?.includes("cena") && r.time <= 90,
+    );
+    expect(moluscoCenas.length).toBeGreaterThanOrEqual(2);
+
+    const menuPlan = {
+      [group.id]: {
+        "Jue-Cena": { recipeId: moluscoCenas[0].id, eaters: 2 },
+        "Dom-Cena": { recipeId: moluscoCenas[1].id, eaters: 2 },
+      },
+    };
+
+    for (let i = 0; i < 40; i++) {
+      const result = pickCatalogReplacement(data, menuPlan, {
+        groupId: group.id,
+        day: "Jue",
+        meal: "Cena",
+        course: "main",
+      });
+      expect(result).toBeTruthy();
+      const picked = recipeCatalogById[result.recipeId] ?? recipeCatalogById[result.frontendRecipe.baseRecipeId];
+      expect(mariscoSubtypeOf(picked)).not.toBe("molusco");
     }
   });
 });

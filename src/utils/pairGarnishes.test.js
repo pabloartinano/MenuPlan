@@ -195,6 +195,33 @@ describe("pairGarnishes", () => {
     const result = pairGarnishes(slots, pool, { p1: "guarniciones_024" }, []);
     expect(result[0].garnishId).toBe("guarniciones_024");
   });
+
+  it("falls back to pan for a cena when it's the only side left, instead of shipping it bare", () => {
+    // Reported: "una cena no pueden ser navajas [...] es super incompleta" —
+    // a shellfish-only cena (mejillones, navajas) with no other eligible side
+    // left this week used to ship with no garnish at all. Bread is excluded
+    // from every earlier tier (a baguette plated next to a normal segundo
+    // reads as redundant) but is a completely normal way to round out this
+    // kind of light cena, so it's the one thing tried before giving up.
+    const bread = garnish({ id: "bread1", shortName: "pan de pueblo" });
+    const molusco = principal({
+      id: "moluscos1",
+      category: "pescados",
+      name: "Navajas a la plancha con limón",
+      kcal: 240,
+    });
+    const pool = { moluscos1: molusco };
+    const result = pairGarnishes([{ slotId: "lun_cena", recipeId: "moluscos1" }], pool, {}, [bread]);
+    expect(result[0].garnishId).toBe("bread1");
+  });
+
+  it("never falls back to pan for a comida segundo, even as a last resort", () => {
+    const bread = garnish({ id: "bread1", shortName: "pan de pueblo" });
+    const meat = principal({ id: "meat", category: "carnes", name: "Filete a la plancha", kcal: 300 });
+    const pool = { meat };
+    const result = pairGarnishes([{ slotId: "lun_comida_2", recipeId: "meat" }], pool, {}, [bread]);
+    expect(result[0].garnishId).toBeUndefined();
+  });
 });
 
 describe("pairGarnishes contra el catálogo real", () => {

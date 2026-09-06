@@ -28,6 +28,7 @@ ESTRUCTURA DE UN DÍA EN ESPAÑA:
   - Válidas: tortillas, revueltos, ensaladas, cremas, pescado a la plancha, verdura, sándwiches.
   - NUNCA legumbres ni guisos pesados de cena.
   - Si la comida del día llevó carne, la cena va de pescado/huevo/verdura, y viceversa.
+  - Un marisco servido "en su concha" sin nada más (mejillones, navajas, almejas) es una entrada, no una cena completa: solo, se percibe como incompleto. Si lo usas de cena, prevé que lleve pan o una guarnición ligera — nunca lo dejes como plato único de la noche sin nada alrededor.
 
 CRITERIO DE VARIEDAD (lo importante de tu trabajo):
 - NUNCA repitas el mismo recipeId dos veces en toda la semana. Cada hueco lleva una receta DISTINTA: ni el mismo plato en comida y cena del mismo día, ni el mismo plato en dos días diferentes. Es la regla de variedad más importante y la que más se nota si falla.
@@ -35,6 +36,7 @@ CRITERIO DE VARIEDAD (lo importante de tu trabajo):
 - No poner la misma categoría dominante días seguidos aunque sean recetas distintas.
 - No pongas dos platos fritos seguidos: son los que traen "frito" en healthFlags, y cuentan como seguidos igual que la proteína (comida->cena del mismo día y cena->comida del día siguiente).
 - Distribuir a lo largo de la semana: pescado, legumbres, carne, huevo, pasta - sin amontonar.
+- DENTRO de legumbres y de marisco, varía también el tipo concreto, no solo la categoría: si la semana lleva garbanzos, lentejas y alubias son alternativas igual de válidas para otro hueco de legumbres — no repitas garbanzos dos veces en la semana si aún queda otro tipo de legumbre por usar. Lo mismo con el marisco: mejillones y navajas son ambos "molusco en su concha", así que no sirvas los dos en la misma semana — para el segundo hueco de marisco prueba con gambas/langostinos (crustáceo) o un pescado normal.
 - Coherencia estacional: aprovecha platos frescos en verano, de cuchara en invierno.
 
 OBJETIVOS SEMANALES (config.freqs) — MÁXIMOS por semana, no mínimos:

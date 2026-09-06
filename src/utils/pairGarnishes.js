@@ -267,6 +267,22 @@ export function pairGarnishes(slotAssignments, poolById, pinnedByRecipeId = {}, 
           return true;
         });
       }
+      // Cena-only final fallback: bread. It's excluded from every tier above
+      // because a baguette plated next to a normal segundo reads as
+      // redundant — but a cena main that's shellfish-in-the-shell or another
+      // light single-ingredient plate (mejillones, navajas…) with NO other
+      // eligible side left this week would otherwise ship completely bare,
+      // which is exactly what was reported as "una cena no puede ser solo
+      // navajas/mejillones, es incompleta". Pan is a normal way to round out
+      // that kind of cena in practice, so it's better than nothing here even
+      // though it's never proactively chosen while a non-bread side exists.
+      if (candidates.length === 0 && isCena) {
+        candidates = eligible.filter((g) => {
+          if (!isPanGarnish(g)) return false;
+          const gCarb = carbOfGarnish(g);
+          return !(gCarb && dayCarbs.has(gCarb));
+        });
+      }
       // Avoid a garnish that duplicates the main's headline ingredient
       // ("Bacalao con tomate" + "Ensalada de tomate"). For a segundo, also guard
       // against repeating the day's primero star — otherwise "Ensalada de tomate"
